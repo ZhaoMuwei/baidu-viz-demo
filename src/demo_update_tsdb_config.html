@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="renderer" content="webkit">
+
+        <!-- 加载 物可视SDK-->
+        <script type="text/javascript" src="https://iotviz2.cdn.bcebos.com/bin/prod/sdk/bdiotvizplayer.min.js"></script>
+
+        <style>
+            html, body {
+                font-size: 12px;
+                font-family: "PingFang SC";
+                display: block;
+                margin: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            #content {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="content"></div>
+
+        <script type="text/javascript">
+            const bdIotVizPlayer = window.BDIotVizPlayer;
+            const container = document.getElementById('content');
+            const myDashboard = bdIotVizPlayer({
+                containerElement: container,
+                dashboardId: '5f103464bc164542aaa2d345',
+                fillMode: 'none', // <-- Optional, Possible value: 'none', 'contain', 'cover', 'responsive'
+                token: {
+                    type: 'embedded', // <-- Must be 'embedded'
+                    value: '1b41b165b3d3531d5273de781564d741' // <-- Access Token for current dashboard
+                },
+                customizeLogo: { // <-- Customize Logo Info
+                    enable: true,
+                    sign: '3a416bfa58ad76ac0bab6cd7dca533f8',
+                    loadingImg: '',
+                    loadingMsg: ''
+                }
+            });
+            myDashboard.getDashboardConfig().then(function(config){
+                console.log(config); // <--- Current Dashboard Config
+
+                // config.dataTables 数组中保存了仪表盘中所有的数据表
+                // 本例中只有一个数据表
+                const dataTable = config.dataTables[0];
+
+                // 当前仪表盘 ID 和配置
+                const {id: dataTableId, config: dataTableConfig} = dataTable;
+
+                // 修改配置
+                // 本例修改的是 TSDB 查询参数中的 tag 字段, 从 ['bj'] 改为 ['gz']
+                // 具体的所有可修改字段请参考 https://cloud.baidu.com/doc/IOTVIZ/s/tjwvxl920
+                // 注意, 这里只是示意代码, 生产环境请注意判断中间各个字段的存在性, 或者使用 lodash 等工具, 防止异常报错
+                dataTableConfig.filters.tags[0].in = ['gz'];
+
+                // 最后, 使用 updateDataTableConfig 将修改后的配置写回
+                // 方法描述请参考 https://cloud.baidu.com/doc/IOTVIZ/s/vjwvxl9fj
+                // 注意, 这里的'写回'只是'运行时'生效, 不会被保存到仪表盘配置或者物可视数据库中, 刷新即失效
+                myDashboard.updateDataTableConfig(dataTableId, dataTableConfig)
+                    .then(() => console.info('更新完成'));
+            });
+            // 'myDashboard' exposes the API to the dashboard loaded
+            // refer to API doc for complete API description
+        </script>
+    </body>
+</html>
